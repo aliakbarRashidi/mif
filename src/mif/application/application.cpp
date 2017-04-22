@@ -28,6 +28,7 @@
 
 // MIF
 #include "mif/application/id/config.h"
+#include "mif/application/id/service.h"
 #include "mif/application/application.h"
 #include "mif/common/log.h"
 #include "mif/common/log_init.h"
@@ -257,6 +258,8 @@ namespace Mif
                 bool pathFromConfig = false;
                 bool levelFromConfig = false;
 
+                Common::ICollectionPtr components;
+
                 if (m_options.count(Option::Config::GetString()))
                 {
                     auto config = LoadConfig();
@@ -291,13 +294,16 @@ namespace Mif
                                     levelFromConfig = true;
                                 }
                             }
+
+                            if (config->Exists("components"))
+                                components = config->GetCollection("components");
                         }
                     }
                 }
 
                 InitLog(pathFromConfig, levelFromConfig);
 
-                Start();
+                Start(components);
             }
             catch (std::exception const &e)
             {
@@ -336,7 +342,7 @@ namespace Mif
             }
         }
 
-        void Application::Start()
+        void Application::Start(Common::ICollectionPtr components)
         {
             auto locator = Service::RootLocator::Get();
 
@@ -357,9 +363,9 @@ namespace Mif
             try
             {
                 if (!m_runAsDaemon)
-                    RunInThisProcess();
+                    RunInThisProcess(components);
                 else
-                    RunAsDaemon();
+                    RunAsDaemon(components);
             }
             catch (std::exception const &e)
             {
@@ -411,25 +417,38 @@ namespace Mif
             throw std::invalid_argument{"[Mif::Application::Application::LoadConfig] Unsupported format \"" + m_configFileFormat + "\""};
         }
 
-        void Application::RunAsDaemon()
+        void Application::RunAsDaemon(Common::ICollectionPtr components)
         {
             #if defined(__linux__) || defined(__unix__)
 
             if (!m_daemon)
-                m_daemon.reset(new Daemon{ [this] { OnStart(); }, [this] { OnStop(); } });
+            {
+                m_daemon.reset(new Daemon{
+                        [this, components]
+                        {
+                            if (components)
+                                Service::RootLocator::Get()->Put<Id::Service::ComponentsFactory>(components);
+                            OnStart();
+                        },
+                        [this] { Stop(); }
+                        }
+                    );
+            }
 
             #endif
         }
 
-        void Application::RunInThisProcess()
+        void Application::RunInThisProcess(Common::ICollectionPtr components)
         {
             std::exception_ptr exception{};
 
             std::thread t{
-                    [this, &exception]
+                    [this, &components, &exception]
                     {
                         try
                         {
+                            if (components)
+                                Service::RootLocator::Get()->Put<Id::Service::ComponentsFactory>(components);
                             OnStart();
                             std::cout << "Press 'Enter' for quit." << std::endl;
                             std::cin.get();
