@@ -10,7 +10,7 @@
 
 // MIF
 #include "mif/application/id/service.h"
-#include "mif/common/icollection.h"
+#include "mif/application/iconfig.h"
 #include "mif/service/creator.h"
 #include "mif/service/ifactory.h"
 
@@ -27,12 +27,22 @@ namespace Mif
                     : public Service::Inherit<Service::IFactory>
                 {
                 public:
-                    ComponentsFactory(Common::ICollectionPtr componentsInfo)
+                    ComponentsFactory(IConfigPtr componentsInfo)
                     {
                         if (!componentsInfo)
                         {
                             throw std::invalid_argument{"[Mif::Application::Detail::ComponentsFactory] "
                                     "Empty input components info."};
+                        }
+
+                        if (componentsInfo->Exists("components"))
+                        {
+                            auto components = componentsInfo->GetCollection("components");
+                            components->Reset();
+                            for (auto next = !components->IsEmpty() ; next ; next = components->Next())
+                            {
+                                components->Get();
+                            }
                         }
                     }
 
@@ -60,5 +70,5 @@ MIF_SERVICE_CREATOR
 (
     Mif::Application::Id::Service::ComponentsFactory,
     Mif::Application::Detail::ComponentsFactory,
-    Mif::Common::ICollectionPtr
+    Mif::Application::IConfigPtr
 )

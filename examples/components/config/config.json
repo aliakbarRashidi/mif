@@ -1,0 +1,82 @@
+{
+	"common": {
+		"daemon": 0,
+		"log": {
+			"level": 4,
+			"dir": ".",
+			"pattern": "log_%5N.log"
+		}
+	},
+	"components": {
+		"common": {
+			"dll": {
+				"dir": ""
+			}
+		},
+		"components": [
+			{
+				"type": "inpocess",
+				"module": {
+					"name": "component1",
+					"dir": "${dll.dir}"
+				},
+				"services": [
+					{
+						"id": "test-service-1"
+					},
+					{
+						"id": "test-service-2"
+					}
+				]
+			},
+			{
+				"type": "inpocess",
+				"module": {
+					"name": "component2",
+					"dir": "${dll.dir}"
+				},
+				"services": [
+					{
+						"id": "test-service-3"
+					}
+				]
+			},
+			{
+				"type": "inpocess",
+				"module": {
+					"name": "server",
+					"dir": "${dll.dir}"
+				},
+				"services": [
+					{
+						"id": "test-tcp-server",
+						"run": {
+							"type": "in-current-process",
+							"data": {
+								"connection": {
+									"host": "0.0.0.0",
+									"port": "5555",
+									"workers": 4
+								}
+							}
+						}
+					},
+					{
+						"id": "test-http-server",
+						"run": {
+							"type": "in-surrogate-process",
+							"data": {
+								"connection": {
+									"host": "0.0.0.0",
+									"port": "7777",
+									"workers": 4
+								}
+							}
+						}
+					}
+				]
+			}
+		]
+	},
+	"data": null
+}

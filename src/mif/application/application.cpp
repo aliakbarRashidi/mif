@@ -258,7 +258,7 @@ namespace Mif
                 bool pathFromConfig = false;
                 bool levelFromConfig = false;
 
-                Common::ICollectionPtr components;
+                IConfigPtr components;
 
                 if (m_options.count(Option::Config::GetString()))
                 {
@@ -296,7 +296,7 @@ namespace Mif
                             }
 
                             if (config->Exists("components"))
-                                components = config->GetCollection("components");
+                                components = config->GetConfig("components");
                         }
                     }
                 }
@@ -342,7 +342,7 @@ namespace Mif
             }
         }
 
-        void Application::Start(Common::ICollectionPtr components)
+        void Application::Start(IConfigPtr components)
         {
             auto locator = Service::RootLocator::Get();
 
@@ -417,7 +417,7 @@ namespace Mif
             throw std::invalid_argument{"[Mif::Application::Application::LoadConfig] Unsupported format \"" + m_configFileFormat + "\""};
         }
 
-        void Application::RunAsDaemon(Common::ICollectionPtr components)
+        void Application::RunAsDaemon(IConfigPtr components)
         {
             #if defined(__linux__) || defined(__unix__)
 
@@ -438,7 +438,7 @@ namespace Mif
             #endif
         }
 
-        void Application::RunInThisProcess(Common::ICollectionPtr components)
+        void Application::RunInThisProcess(IConfigPtr components)
         {
             std::exception_ptr exception{};
 

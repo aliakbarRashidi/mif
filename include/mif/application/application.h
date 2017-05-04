@@ -97,11 +97,11 @@ namespace Mif
 
             void InitLog(bool pathFromConfig, bool levelFromConfig);
 
-            void Start(Common::ICollectionPtr components);
+            void Start(IConfigPtr components);
             void Stop();
             IConfigPtr LoadConfig() const;
-            void RunAsDaemon(Common::ICollectionPtr components);
-            void RunInThisProcess(Common::ICollectionPtr components);
+            void RunAsDaemon(IConfigPtr components);
+            void RunInThisProcess(IConfigPtr components);
         };
 
     }   // namespace Application
